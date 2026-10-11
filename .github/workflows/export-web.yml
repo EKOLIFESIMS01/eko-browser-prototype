@@ -50,6 +50,18 @@ jobs:
           vram_texture_compression/for_mobile=false
           PRESET
 
+      - name: Install Godot Web export templates
+        run: |
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.3.stable"
+          curl -fL \
+            "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz" \
+            -o /tmp/godot-templates.tpz
+          mkdir -p /tmp/godot-templates
+          unzip -o /tmp/godot-templates.tpz -d /tmp/godot-templates
+          cp -r /tmp/godot-templates/templates/. \
+            "$HOME/.local/share/godot/export_templates/4.3.stable/"
+
+
       - name: Import assets
         run: godot --headless --editor --path project --import --quit
 
