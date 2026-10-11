@@ -1,0 +1,5 @@
+- name: Export game to HTML5
+  run: |
+    mkdir -p build/web
+    godot --headless --path . \
+      --export-release "Web" build/web/index.html
