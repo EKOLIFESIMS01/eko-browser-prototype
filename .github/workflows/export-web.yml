@@ -1,4 +1,23 @@
 
+      - name: Install Godot 4.3 Web export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TEMPLATE_URL="https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz"
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.3.stable"
+
+          mkdir -p "$TEMPLATE_DIR"
+          curl -fL "$TEMPLATE_URL" -o /tmp/godot-templates.tpz
+
+          unzip -jo /tmp/godot-templates.tpz \
+            'templates/*' -d "$TEMPLATE_DIR"
+
+          echo "4.3.stable" > "$TEMPLATE_DIR/version.txt"
+
+          test -f "$TEMPLATE_DIR/web_release.zip"
+          echo "Godot Web templates installed successfully"
+
 name: Build EKO for browser
 
 on:
