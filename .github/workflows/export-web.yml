@@ -1,0 +1,67 @@
+
+name: Build EKO for browser
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'EKO_Prototype_Starter.zip'
+      - '.github/workflows/export-web.yml'
+
+jobs:
+  export-web:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3.0
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Unpack EKO project
+        run: |
+          mkdir -p project
+          unzip -o EKO_Prototype_Starter.zip -d project
+
+      - name: Create Web export preset
+        run: |
+          cat > project/export_presets.cfg <<'PRESET'
+          [preset.0]
+          name="Web"
+          platform="Web"
+          runnable=true
+          advanced_options=false
+          dedicated_server=false
+          custom_features=""
+          export_filter="all_resources"
+          include_filter=""
+          exclude_filter=""
+          export_path="build/index.html"
+          encryption_include_filters=""
+          encryption_exclude_filters=""
+          encrypt_pck=false
+          encrypt_directory=false
+
+          [preset.0.options]
+          custom_template/debug=""
+          custom_template/release=""
+          variant/extensions_support=false
+          variant/thread_support=false
+          vram_texture_compression/for_desktop=true
+          vram_texture_compression/for_mobile=false
+          PRESET
+
+      - name: Import assets
+        run: godot --headless --editor --path project --import --quit
+
+      - name: Export Web build
+        run: |
+          mkdir -p project/build
+          godot --headless --path project --export-release "Web" project/build/index.html
+
+      - name: Save browser files
+        uses: actions/upload-artifact@v4
+        with:
+          name: EKO-Web-Build
+          path: project/build/
+          if-no-files-found: error
+          
