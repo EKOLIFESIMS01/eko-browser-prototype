@@ -1,1 +1,58 @@
+name: EKO LIFE SIM - Godot Web Build
 
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  export-game:
+    name: Export EKO LIFE SIM
+    runs-on: ubuntu-latest
+
+    container:
+      image: barichello/godot-ci:4.3
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Godot directories
+        run: mkdir -p ~/.config/godot
+
+      - name: Check Godot installation
+        run: godot --version
+
+      - name: Import project resources
+        run: godot --headless --editor --path . --quit
+
+      - name: Export game to HTML5
+        run: |
+          mkdir -p build/web
+          godot --headless --path . \
+            --export-release "Web" build/web/index.html
+
+      - name: Upload web build
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    name: Publish EKO LIFE SIM
+    needs: export-game
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
