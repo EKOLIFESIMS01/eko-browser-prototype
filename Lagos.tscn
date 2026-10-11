@@ -1,0 +1,16 @@
+
+[gd_scene format=3]
+
+[node name="Lagos" type="Node2D"]
+
+[node name="Ground" type="ColorRect" parent="."]
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.25, 0.55, 0.3, 1)
+
+[node name="Welcome" type="Label" parent="."]
+offset_left = 250.0
+offset_top = 100.0
+offset_right = 900.0
+offset_bottom = 160.0
+text = "WELCOME TO LAGOS"
