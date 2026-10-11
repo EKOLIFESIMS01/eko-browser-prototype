@@ -1,0 +1,12 @@
+const controlRootNode = {
+  id: "EKOLIFESIMS01",
+  name: "EKOLIFESIMS01",
+  type: "control-root",
+  enabled: true,
+  children: [],
+  metadata: {
+    createdBy: "copilot"
+  }
+};
+
+console.log(controlRootNode);
