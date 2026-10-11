@@ -1,1 +1,95 @@
-h
+
+name: EKO LIFE SIM - Godot Web Export
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-web:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download EKO LIFE SIM source code
+        uses: actions/checkout@v4
+
+      - name: Install system tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl unzip
+
+      - name: Install Godot 4.3
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/godot"
+          curl -fL \
+            https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip \
+            -o /tmp/godot.zip
+          unzip -o /tmp/godot.zip -d "$HOME/godot"
+          GODOT_BIN="$(find "$HOME/godot" -type f -name 'Godot_v4.3*' | head -n 1)"
+          test -n "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
+          echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
+
+      - name: Install matching Web export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.3.stable"
+          mkdir -p "$TEMPLATE_DIR"
+
+          curl -fL \
+            https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz \
+            -o /tmp/godot-templates.tpz
+
+          unzip -jo /tmp/godot-templates.tpz \
+            'templates/*' -d "$TEMPLATE_DIR"
+
+          echo "4.3.stable" > "$TEMPLATE_DIR/version.txt"
+          test -f "$TEMPLATE_DIR/web_release.zip"
+
+      - name: Find EKO LIFE SIM project
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT_FILE="$(find . -name project.godot \
+            -not -path './.git/*' | head -n 1)"
+          if [ -z "$PROJECT_FILE" ]; then
+            echo "ERROR: project.godot is missing."
+            echo "Add your Godot game project to the repository."
+            exit 1
+          fi
+          PROJECT_DIR="$(dirname "$PROJECT_FILE")"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Found project: $PROJECT_FILE"
+
+      - name: Import game assets
+        run: |
+          "$GODOT_BIN" --headless \
+            --path "$PROJECT_DIR" --editor --import
+
+      - name: Export EKO LIFE SIM for Web
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$PROJECT_DIR/build"
+          "$GODOT_BIN" --headless \
+            --path "$PROJECT_DIR" \
+            --export-release "Web" \
+            "$PROJECT_DIR/build/index.html"
+
+          test -f "$PROJECT_DIR/build/index.html"
+
+      - name: Upload EKO Web game
+        uses: actions/upload-artifact@v4
+        with:
+          name: EKO-LIFE-SIM-Web
+          path: |
+            ${{ env.PROJECT_DIR }}/build/
+          if-no-files-found: error
+          retention-days: 14
